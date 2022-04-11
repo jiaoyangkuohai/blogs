@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.1.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blogs/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blogs/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blogs/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/blogs/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/blogs/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" integrity="sha256-DfWjNxDkM94fVBWx1H5BMMp0Zq7luBlV8QRcSES7s+0=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"jiaoyangkuohai.github.io","root":"/blogs/","images":"/blogs/images","scheme":"Gemini","darkmode":false,"version":"8.11.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/blogs/js/config.js"></script>
+
+    <meta name="description" content="参考李航的统计学方法，手动实现的一版Boosting算法,也算是极简版GBDT">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BoostingTree代码实现">
+<meta property="og:url" content="https://jiaoyangkuohai.github.io/blogs/2022/04/11/Boosting/index.html">
+<meta property="og:site_name" content="青锋剑侠">
+<meta property="og:description" content="参考李航的统计学方法，手动实现的一版Boosting算法,也算是极简版GBDT">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-04-11T11:30:54.295Z">
+<meta property="article:modified_time" content="2022-04-11T11:37:19.409Z">
+<meta property="article:author" content="shl">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://jiaoyangkuohai.github.io/blogs/2022/04/11/Boosting/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://jiaoyangkuohai.github.io/blogs/2022/04/11/Boosting/","path":"2022/04/11/Boosting/","title":"BoostingTree代码实现"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>BoostingTree代码实现 | 青锋剑侠</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blogs/css/noscript.css">
+  </noscript>
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blogs/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">青锋剑侠</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89"><span class="nav-number">1.</span> <span class="nav-text">定义</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE"><span class="nav-number">2.</span> <span class="nav-text">数据</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A5%E5%85%85"><span class="nav-number">2.1.</span> <span class="nav-text">补充</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81"><span class="nav-number">2.2.</span> <span class="nav-text">代码</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">shl</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/blogs/archives/">
+          <span class="site-state-item-count">3</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jiaoyangkuohai.github.io/blogs/2022/04/11/Boosting/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blogs/images/avatar.gif">
+      <meta itemprop="name" content="shl">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="青锋剑侠">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="BoostingTree代码实现 | 青锋剑侠">
+      <meta itemprop="description" content="参考李航的统计学方法，手动实现的一版Boosting算法,也算是极简版GBDT">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          BoostingTree代码实现
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2022-04-11 19:30:54 / 修改时间：19:37:19" itemprop="dateCreated datePublished" datetime="2022-04-11T19:30:54+08:00">2022-04-11</time>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">参考李航的统计学方法，手动实现的一版Boosting算法,也算是极简版GBDT</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="定义">定义</h1>
+<p>回归问题的提升树算法 输入：训练数据集<span class="math inline">\(T= \{ (x_1, y_1),(x_2, y_2), \cdots, (x_N, y_n) \}\)</span>，其中<span class="math inline">\(x_i \in \chi \subseteq R^n\)</span>, <span class="math inline">\(y_i \in Y \subseteq R^n\)</span>; 输出： 提升树<span class="math inline">\(f_M(x)\)</span> (1) 初始化 <span class="math inline">\(f_0(x)=0\)</span> (2) 对<span class="math inline">\(m=1,2,\cdots,M\)</span> <span class="math inline">\((a)\)</span> 按照<span class="math inline">\(r = y-f_{m-1}(x)\)</span>计算残差 <span class="math display">\[r_{mi}=y_i-f_{m-1}(x), i=1,2,\cdots,N\]</span> <span class="math inline">\((b)\)</span> 拟合残差<span class="math inline">\(r_{mi}\)</span>学习一个回归树，得到<span class="math inline">\(T(x;\Theta_m)\)</span> <span class="math inline">\((c)\)</span> 更新<span class="math inline">\(f_m(x)=f_{m-1}(x)+T(x;\Theta_m)\)</span> (3) 得到回归问题提升树 <span class="math display">\[f_M(x)=\sum_{m=1}^M T(x;\Theta_m)\]</span> 其中 <span class="math display">\[T(x; \Theta_m)=\sum_{j=1}^{J}c_j I(x \in R_j)\]</span></p>
+<h1 id="数据">数据</h1>
+<p>例 8.2</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;"><span class="math inline">\(x_i\)</span></th>
+<th style="text-align: center;">1</th>
+<th style="text-align: center;">2</th>
+<th style="text-align: center;">3</th>
+<th style="text-align: center;">4</th>
+<th style="text-align: center;">5</th>
+<th style="text-align: center;">6</th>
+<th style="text-align: center;">7</th>
+<th style="text-align: center;">8</th>
+<th style="text-align: center;">9</th>
+<th style="text-align: center;">10</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><span class="math inline">\(y_i\)</span></td>
+<td style="text-align: center;">5.56</td>
+<td style="text-align: center;">5.70</td>
+<td style="text-align: center;">5.91</td>
+<td style="text-align: center;">6.40</td>
+<td style="text-align: center;">6.80</td>
+<td style="text-align: center;">7.05</td>
+<td style="text-align: center;">8.90</td>
+<td style="text-align: center;">8.70</td>
+<td style="text-align: center;">9.00</td>
+<td style="text-align: center;">9.05</td>
+</tr>
+</tbody>
+</table>
+<h2 id="补充">补充</h2>
+<p>首先通过以下优化问题： <span class="math display">\[\underset{s}{min} = [ \underset{c_1}{min} \sum_{x_i \in R_1} (y_i - c_1) ^ 2+ \underset{c_2}{min} \sum_{x_i \in R_2} (y_i - c_2) ^2 ]\]</span> 求解训练数据的切分点<span class="math inline">\(s\)</span>: <span class="math display">\[R_1=\{ x | x \le s \}, R_2=\{ x | x \gt s \}\]</span> 容易求得在<span class="math inline">\(R_1\)</span>，<span class="math inline">\(R_2\)</span>内部使平方损失误差达到最小值的<span class="math inline">\(c_1, c_2\)</span>为： <span class="math display">\[c_1=\frac{1}{N_1} \sum_{x_i \in R_1} y_i ,\  c_2=\frac{1}{N_2} \sum_{x_i \in R_2} y_i\]</span> 这里<span class="math inline">\(N_1, N_2\)</span>是<span class="math inline">\(R_1, R_2\)</span>的样本点数。</p>
+<h2 id="代码">代码</h2>
+<p>python 代码 <br/> 相当于loss为均方误差</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> <span class="type">List</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"></span><br><span class="line">pd.set_option(<span class="string">&quot;display.max_columns&quot;</span>, <span class="number">20</span>)</span><br><span class="line">pd.set_option(<span class="string">&quot;display.max_rows&quot;</span>, <span class="number">20</span>)</span><br><span class="line">pd.set_option(<span class="string">&quot;display.width&quot;</span>, <span class="number">2000</span>)</span><br><span class="line">pd.set_option(<span class="string">&quot;display.max_colwidth&quot;</span>, <span class="number">2000</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">TreeStub</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, x, y, cut_value</span>):</span><br><span class="line">        self.val = cut_value</span><br><span class="line">        self.err = <span class="literal">None</span></span><br><span class="line">        self.left_y = <span class="literal">None</span></span><br><span class="line">        self.right_y = <span class="literal">None</span></span><br><span class="line">        self.left_err = <span class="literal">None</span></span><br><span class="line">        self.right_err = <span class="literal">None</span></span><br><span class="line">        self.left_c = <span class="literal">None</span></span><br><span class="line">        self.right_c = <span class="literal">None</span></span><br><span class="line"></span><br><span class="line">        self._get_err(x, y)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">_get_err</span>(<span class="params">self, x, y</span>):</span><br><span class="line">        left_mask = x &lt;= self.val</span><br><span class="line">        self.left_c = np.<span class="built_in">sum</span>(left_mask * y) / np.<span class="built_in">sum</span>(left_mask)</span><br><span class="line">        self.left_y = y[: np.<span class="built_in">sum</span>(left_mask)]</span><br><span class="line">        self.left_err = np.<span class="built_in">sum</span>(np.square(self.left_y - self.left_c))</span><br><span class="line"></span><br><span class="line">        right_mask = x &gt; self.val</span><br><span class="line">        self.right_c = np.<span class="built_in">sum</span>(right_mask * y) / np.<span class="built_in">sum</span>(right_mask)</span><br><span class="line">        self.right_y = y[np.<span class="built_in">sum</span>(left_mask):]</span><br><span class="line">        self.right_err = np.<span class="built_in">sum</span>(np.square(self.right_y - self.right_c))</span><br><span class="line"></span><br><span class="line">        self.err = self.left_err + self.right_err</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">get_residual</span>(<span class="params">self, x, y</span>):</span><br><span class="line">        <span class="keyword">return</span> y - self.predict(x)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">predict</span>(<span class="params">self, values</span>):</span><br><span class="line">        <span class="keyword">return</span> (values &lt; self.val) * self.left_c + (values &gt;= self.val) * self.right_c</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">BoostingTree</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, m, x, y, candidates</span>):</span><br><span class="line">        self.m = m</span><br><span class="line">        self.x = x</span><br><span class="line">        self.y = y</span><br><span class="line">        self.candidates = candidates</span><br><span class="line">        self.errs = &#123;&#125;</span><br><span class="line">        self.round_num = <span class="number">3</span></span><br><span class="line">        self.trees: <span class="type">List</span>[TreeStub] = []</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">_get_min_loss_cut_candidate</span>(<span class="params">self, x, y</span>):</span><br><span class="line">        min_ms = np.array([<span class="built_in">float</span>(<span class="string">&quot;inf&quot;</span>)])</span><br><span class="line">        candidate_tree = <span class="literal">None</span></span><br><span class="line">        <span class="keyword">for</span> value <span class="keyword">in</span> self.candidates:</span><br><span class="line">            tree_stub = TreeStub(x, y, value)</span><br><span class="line">            self.errs.setdefault(value, []).append(np.<span class="built_in">round</span>(tree_stub.err, self.round_num))</span><br><span class="line">            <span class="keyword">if</span> min_ms &gt; tree_stub.err:</span><br><span class="line">                min_ms = tree_stub.err</span><br><span class="line">                candidate_tree = tree_stub</span><br><span class="line"></span><br><span class="line">        self.errs.setdefault(<span class="string">&quot;loss&quot;</span>, []).append(np.<span class="built_in">round</span>(min_ms, <span class="number">3</span>))</span><br><span class="line">        self.errs.setdefault(<span class="string">&quot;cut_value&quot;</span>, []).append(candidate_tree.val)</span><br><span class="line">        self.errs.setdefault(<span class="string">&quot;tree_left_value&quot;</span>, []).append(np.<span class="built_in">round</span>(candidate_tree.left_c, self.round_num))</span><br><span class="line">        self.errs.setdefault(<span class="string">&quot;tree_right_value&quot;</span>, []).append(np.<span class="built_in">round</span>(candidate_tree.right_c, self.round_num))</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> candidate_tree</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">fit</span>(<span class="params">self</span>):</span><br><span class="line">        y_iter = self.y</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(self.m):</span><br><span class="line">            self.errs.setdefault(<span class="string">&quot;iter_num&quot;</span>, []).append(i+<span class="number">1</span>)</span><br><span class="line">            tree_stub_i = self._get_min_loss_cut_candidate(self.x, y_iter)</span><br><span class="line">            self.trees.append(tree_stub_i)</span><br><span class="line">            y_iter = tree_stub_i.get_residual(self.x, y_iter)</span><br><span class="line"></span><br><span class="line">        self._generate_summary()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">predict</span>(<span class="params">self, x</span>):</span><br><span class="line">        out = np.zeros_like(x, dtype=np.float32)</span><br><span class="line">        <span class="keyword">for</span> tree <span class="keyword">in</span> self.trees:</span><br><span class="line">            out += tree.predict(x)</span><br><span class="line">        <span class="keyword">return</span> out</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">_generate_summary</span>(<span class="params">self</span>):</span><br><span class="line">        self.df = pd.DataFrame(self.errs)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">summary</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="keyword">return</span> self.df</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line">    x = np.array([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>], dtype=np.int32)</span><br><span class="line">    y = np.array([<span class="number">5.56</span>, <span class="number">5.70</span>, <span class="number">5.91</span>, <span class="number">6.40</span>, <span class="number">6.80</span>, <span class="number">7.05</span>, <span class="number">8.90</span>, <span class="number">8.70</span>, <span class="number">9.00</span>, <span class="number">9.05</span>], dtype=np.float32)</span><br><span class="line">    <span class="comment"># 切分点</span></span><br><span class="line">    cut_candidate = np.array(<span class="built_in">range</span>(<span class="number">3</span>, <span class="number">21</span>, <span class="number">2</span>)) * <span class="number">0.5</span></span><br><span class="line">    <span class="comment"># 定义boosting tree</span></span><br><span class="line">    boostint_tree = BoostingTree(<span class="number">15</span>, x, y, cut_candidate)</span><br><span class="line">    <span class="comment"># 训练</span></span><br><span class="line">    boostint_tree.fit()</span><br><span class="line">    <span class="comment"># 展示训练结果</span></span><br><span class="line">    <span class="built_in">print</span>(boostint_tree.summary())</span><br><span class="line">    </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;*&quot;</span> * <span class="number">100</span>)</span><br><span class="line">    df = pd.DataFrame([y, boostint_tree.predict(x)])</span><br><span class="line">    df[<span class="string">&#x27;type&#x27;</span>] = [<span class="string">&#x27;y&#x27;</span>, <span class="string">&#x27;y_predict&#x27;</span>]</span><br><span class="line">    <span class="built_in">print</span>(df)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    main()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>运行结果： <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">    iter_num     1.5     2.5    3.5    4.5    5.5    6.5    7.5     8.5     9.5   loss  cut_value  tree_left_value  tree_right_value</span><br><span class="line">0          1  15.723  12.083  8.366  5.775  3.911  1.930  8.010  11.735  15.739  1.930        6.5            6.237             8.912</span><br><span class="line">1          2   1.421   1.010  0.801  1.140  1.665  1.930  1.930   1.898   1.909  0.801        3.5           -0.513             0.220</span><br><span class="line">2          3   0.771   0.779  0.801  0.799  0.768  0.478  0.601   0.772   0.793  0.478        6.5            0.147            -0.220</span><br><span class="line">3          4   0.371   0.334  0.386  0.306  0.398  0.478  0.478   0.446   0.457  0.306        4.5           -0.161             0.107</span><br><span class="line">4          5   0.281   0.290  0.305  0.306  0.302  0.229  0.260   0.305   0.305  0.229        6.5            0.071            -0.107</span><br><span class="line">5          6   0.175   0.172  0.215  0.195  0.200  0.229  0.229   0.197   0.208  0.172        2.5           -0.151             0.038</span><br><span class="line">6          7   0.167   0.172  0.168  0.171  0.170  0.163  0.167   0.158   0.161  0.158        8.5           -0.019             0.075</span><br><span class="line">7          8   0.155   0.157  0.148  0.158  0.158  0.129  0.133   0.158   0.157  0.129        6.5            0.044            -0.066</span><br><span class="line">8          9   0.119   0.128  0.129  0.119  0.113  0.129  0.129   0.119   0.120  0.113        5.5           -0.041             0.041</span><br><span class="line">9         10   0.109   0.112  0.103  0.113  0.113  0.101  0.101   0.111   0.110  0.101        7.5            0.022            -0.052</span><br><span class="line">10        11   0.094   0.101  0.098  0.098  0.096  0.100  0.101   0.086   0.089  0.086        8.5           -0.019             0.077</span><br><span class="line">11        12   0.082   0.085  0.078  0.086  0.086  0.077  0.077   0.086   0.085  0.077        6.5            0.024            -0.036</span><br><span class="line">12        13   0.070   0.077  0.076  0.072  0.070  0.077  0.077   0.074   0.073  0.070        5.5           -0.027             0.027</span><br><span class="line">13        14   0.066   0.069  0.060  0.070  0.070  0.065  0.064   0.069   0.068  0.060        3.5            0.046            -0.020</span><br><span class="line">14        15   0.049   0.058  0.060  0.055  0.056  0.060  0.059   0.058   0.057  0.049        1.5           -0.101             0.011</span><br><span class="line">****************************************************************************************************</span><br><span class="line">      0         1         2         3         4         5         6         7         8         9       type</span><br><span class="line">0  5.56  5.700000  5.910000  6.400000  6.800000  7.050000  8.900000  8.700000  9.000000  9.050000          y</span><br><span class="line">1  5.56  5.671737  5.860047  6.526961  6.795016  6.931811  8.892323  8.817376  9.007362  9.007362  y_predict</span><br><span class="line"></span><br></pre></td></tr></table></figure></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blogs/2022/04/10/AdaBoost/" rel="prev" title="AdaBoost代码实践">
+                  <i class="fa fa-chevron-left"></i> AdaBoost代码实践
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blogs/2022/04/11/XGBoost/" rel="next" title="XGBoost代码实践">
+                  XGBoost代码实践 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">shl</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blogs/js/comments.js"></script><script src="/blogs/js/utils.js"></script><script src="/blogs/js/motion.js"></script><script src="/blogs/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.js","integrity":"sha256-r+3itOMtGGjap0x+10hu6jW/gZCzxHsoKrOd7gyRSGY="}}</script>
+<script src="/blogs/js/third-party/math/mathjax.js"></script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#100f2c',
+  buttonColorLight: '#fff',
+  saveInCookies: true,
+  label: '🌓',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+</body>
+</html>
