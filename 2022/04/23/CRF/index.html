@@ -20,23 +20,27 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"jiaoyangkuohai.github.io","root":"/blogs/","images":"/blogs/images","scheme":"Muse","darkmode":false,"version":"8.11.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/blogs/js/config.js"></script>
 
-    <meta property="og:type" content="website">
-<meta property="og:title" content="青锋剑侠">
-<meta property="og:url" content="https://jiaoyangkuohai.github.io/blogs/archives/2022/04/index.html">
+    <meta name="description" content="记录CRF的推理过程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CRF代码推理过程">
+<meta property="og:url" content="https://jiaoyangkuohai.github.io/blogs/2022/04/23/CRF/index.html">
 <meta property="og:site_name" content="青锋剑侠">
+<meta property="og:description" content="记录CRF的推理过程">
 <meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-04-23T00:14:10.093Z">
+<meta property="article:modified_time" content="2022-04-23T07:35:18.438Z">
 <meta property="article:author" content="shl">
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="https://jiaoyangkuohai.github.io/blogs/archives/2022/04/">
+<link rel="canonical" href="https://jiaoyangkuohai.github.io/blogs/2022/04/23/CRF/">
 
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":false,"lang":"zh-CN","comments":"","permalink":"","path":"archives/2022/04/index.html","title":""}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://jiaoyangkuohai.github.io/blogs/2022/04/23/CRF/","path":"2022/04/23/CRF/","title":"CRF代码推理过程"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>归档 | 青锋剑侠</title>
+<title>CRF代码推理过程 | 青锋剑侠</title>
   
 
 
@@ -63,7 +67,7 @@
 
     <a href="/blogs/" class="brand" rel="start">
       <i class="logo-line"></i>
-      <h1 class="site-title">青锋剑侠</h1>
+      <p class="site-title">青锋剑侠</p>
       <i class="logo-line"></i>
     </a>
   </div>
@@ -91,7 +95,7 @@
 
   <aside class="sidebar">
 
-    <div class="sidebar-inner sidebar-overview-active">
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
       <ul class="sidebar-nav">
         <li class="sidebar-nav-toc">
           文章目录
@@ -104,6 +108,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#crf-loss-function"><span class="nav-number">1.</span> <span class="nav-text">CRF Loss Function</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -145,129 +150,106 @@
 </noscript>
 
 
-    <div class="main-inner archive posts-collapse">
+    <div class="main-inner post posts-expand">
 
 
   
-  
-  
-  <div class="post-block">
-    <div class="post-content">
-      <div class="collection-title">
-        <span class="collection-header">嗯..! 目前共计 5 篇日志。 继续努力。</span>
-      </div>
 
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jiaoyangkuohai.github.io/blogs/2022/04/23/CRF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blogs/images/avatar.gif">
+      <meta itemprop="name" content="shl">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="青锋剑侠">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="CRF代码推理过程 | 青锋剑侠">
+      <meta itemprop="description" content="记录CRF的推理过程">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          CRF代码推理过程
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
       
-    <div class="collection-year">
-      <span class="collection-header">2022</span>
+
+      <time title="创建时间：2022-04-23 08:14:10 / 修改时间：15:35:18" itemprop="dateCreated datePublished" datetime="2022-04-23T08:14:10+08:00">2022-04-23</time>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">记录CRF的推理过程</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="crf-loss-function">CRF Loss Function</h1>
+<p>真实路径占所有可能路径的概率。 <span class="math display">\[
+\begin{align}
+ Log Loss Function &amp;= -\log \frac{P_{realpath}}{P_1+P_2+\cdots+P_N}\\ 
+ &amp;= -(\log P_{realpath} - \log(P_1+P_2+\cdots+P_N)) \\
+ &amp;= \log(e^{S_1} + e^{S_2} + \cdots + e^{S_N}) - S_{realpath}
+\end{align}
+\]</span> 其中 <span class="math display">\[
+P_i=e^{S_i}
+\]</span> <span class="math inline">\(s_i\)</span>表示路径</p>
+
     </div>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2022-04-23T08:14:10+08:00"
-              content="2022-04-23">
-          04-23
-        </time>
-      </div>
+    
+    
+    
 
-      <div class="post-title">
-          <a class="post-title-link" href="/blogs/2022/04/23/CRF/" itemprop="url">
-            <span itemprop="name">CRF代码推理过程</span>
-          </a>
-      </div>
+    <footer class="post-footer">
 
-      
-    </header>
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blogs/2022/04/13/%E6%95%B0%E5%AD%A6%E5%AE%9A%E4%B9%89/" rel="prev" title="一些数学定义">
+                  <i class="fa fa-chevron-left"></i> 一些数学定义
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
   </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2022-04-13T10:21:32+08:00"
-              content="2022-04-13">
-          04-13
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/blogs/2022/04/13/%E6%95%B0%E5%AD%A6%E5%AE%9A%E4%B9%89/" itemprop="url">
-            <span itemprop="name">一些数学定义</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2022-04-11T19:50:14+08:00"
-              content="2022-04-11">
-          04-11
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/blogs/2022/04/11/XGBoost/" itemprop="url">
-            <span itemprop="name">XGBoost代码实践</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2022-04-11T19:30:54+08:00"
-              content="2022-04-11">
-          04-11
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/blogs/2022/04/11/Boosting/" itemprop="url">
-            <span itemprop="name">BoostingTree代码实现</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2022-04-10T07:35:12+08:00"
-              content="2022-04-10">
-          04-10
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/blogs/2022/04/10/AdaBoost/" itemprop="url">
-            <span itemprop="name">AdaBoost代码实践</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
+</div>
 
 
-    </div>
-  </div>
-  
-  
-  
+
+
+
 
 </div>
   </main>
